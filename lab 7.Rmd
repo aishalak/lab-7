@@ -1,0 +1,71 @@
+---
+title: "lab 7"
+author: "Aisha Lakshman"
+date: "3/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Packages
+
+```{r}
+library(tidyverse)
+library(broom)
+library(pROC)
+library(plotROC)
+library(knitr)
+```
+
+### Data Prep and Modeling
+
+# Exercise 1
+```{r}
+spotify <- read_csv("spotify.csv")
+glimpse(spotify)
+
+spotify <- spotify %>% 
+  drop_na() %>% 
+  mutate(target = as.factor(target),
+         key = case_when(
+           key == 2 ~ "D",
+           key == 3 ~ "D#",
+           TRUE ~ "Other"))
+
+glimpse(spotify)
+
+ggplot(data = spotify, aes(x = key, fill = target)) +
+  geom_bar(position = "fill") + 
+  labs(y = "Proportion", title = "Target Vs Key")
+```
+
+The figure above plots the relationship between target and key. About 60% of key D songs have a target value of 1. About 30% of key D# songs have a target value of 1. 50% of key "Other" songs have a target value of 1.   
+
+# Exercise 2
+```{r}
+model <- glm(target ~ acousticness + danceability + duration_ms + instrumentalness + loudness + speechiness + valence, data = spotify, family = binomial)
+
+tidy(model, conf.int = TRUE, exponentiate = FALSE) %>%
+  kable(format="markdown", digits = 5)
+```
+# Exercise 3
+```{r}
+model_key <- glm(target ~ acousticness + danceability + duration_ms + instrumentalness + loudness + speechiness + valence + key, data = spotify, family = binomial)
+
+summary(model_key)$aic
+
+summary(model)$aic 
+```
+
+By comparing the AIC values for the models with key and without key, we can see that the model with key has a lower AIC value. It is best for a model to have a low AIC value, so working with "model_key" is the right way to go. 
+
+#Exercise 4
+```{r}
+tidy(model_key, conf.int = TRUE, exponentiate = FALSE) %>%
+  kable(format="markdown", digits = 5)
+```
+
+For observations of key D# the value for target with increase by e^-1.07319. 
+
