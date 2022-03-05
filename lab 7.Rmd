@@ -19,7 +19,7 @@ library(plotROC)
 library(knitr)
 ```
 
-### Data Prep and Modeling
+### Part I: Data Prep and Modeling
 
 # Exercise 1
 ```{r}
@@ -61,11 +61,51 @@ summary(model)$aic
 
 By comparing the AIC values for the models with key and without key, we can see that the model with key has a lower AIC value. It is best for a model to have a low AIC value, so working with "model_key" is the right way to go. 
 
-#Exercise 4
+# Exercise 4
 ```{r}
 tidy(model_key, conf.int = TRUE, exponentiate = FALSE) %>%
   kable(format="markdown", digits = 5)
 ```
 
-For observations of key D# the value for target with increase by e^-1.07319. 
+For observations of key D# the value for target with increase by e^-1.07319.
+
+### Part II: Checking Assumptions
+
+# Exercise 5
+```{r}
+final_model <- augment(model_key, type.predict = "response", type.residuals = "deviance")
+
+glimpse(final_model)
+```
+
+# Exercise 6
+```{r}
+arm::binnedplot(x = final_model$.fitted, y = final_model$.resid,
+                xlab = "Predicted Probabilities", 
+                ylab = "Residuals",
+                main = "Binned Residual vs. Predicted Values", 
+                col.int = FALSE)
+```
+
+# Exercise 7
+```{r}
+arm::binnedplot(x = final_model$danceability, y = final_model$.resid,
+                xlab = "Danceability", 
+                ylab = "Residuals",
+                main = "Binned Residual vs. Danceability", 
+                col.int = FALSE)
+```
+
+# Exercise 8
+```{r}
+final_model %>% 
+  mutate(resid_key = if_else(.resid > 1 | .resid < -1, "high Residual", "low Residual")) %>% 
+  group_by(key, resid_key) %>% 
+  summarise(n = n()) %>%
+  kable(format="markdown")
+```
+
+# Exercise 9
+
+The plot in exercise 6 does not indicate a linear relationship between the fitted and predictor values. Therefore, I would say that the linearity assumption is not satisfied. 
 
