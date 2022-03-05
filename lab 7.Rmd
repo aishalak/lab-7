@@ -109,3 +109,44 @@ final_model %>%
 
 The plot in exercise 6 does not indicate a linear relationship between the fitted and predictor values. Therefore, I would say that the linearity assumption is not satisfied. 
 
+### Part 3: Model Assessment and Prediction
+
+# Exercise 10
+
+```{r}
+roc_plot <- ggplot(final_model, aes(d = as.numeric(target), m = .fitted)) +
+  geom_roc(n.cuts = 8, labelround = 3) + 
+  geom_abline(intercept = 0) + 
+  labs(x = "False Positive Rate: 1 - specificity", 
+       y = "True Positive Rate: sensitivity")
+roc_plot
+
+calc_auc(roc_plot)$AUC
+```
+
+# Exercise 11 
+It seems like this model does not effectively differentiate the songs the user likes versus those he doesn’t. The curve shown in my ROC plot is above x = 0, y = 0, representing a random classifier. 
+
+# Exercise 12
+
+I think a threshold of 0.58 would be best. This threshold value optimizes the true positive rate while maintaining a small false positive rate. 
+
+# Exercise 13
+
+```{r}
+threshold = 0.58
+final_model %>% 
+  mutate(prediction = if_else(.fitted < threshold, "0:No","1:Yes")) %>% 
+  group_by(target, prediction) %>% 
+  summarise(n = n()) %>%
+  kable(format="markdown")
+```
+
+# Exercise 14
+
+Proportion of true positives (sensitivity) = (512 / 512 + 508) = 0.502
+Proportion of false positives (1 - specificity) = (508 / 512 + 508) = 0.498
+Misclassification rate = (508 + 161 / 512 + 161 + 508 + 836) = 0.302
+
+
+
